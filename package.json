@@ -1,0 +1,27 @@
+{
+  "author": "Yicun Wu <wuyicun@hotmail.com>",
+  "name": "ezpo",
+  "description": "Ezpo Hipchat addon",
+  "version": "0.0.0",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/YicunWendyWu/ezpo.git"
+  },
+  "dependencies": {
+    "body-parser": "^1.6.5",
+    "expect.js": "^0.3.1",
+    "express": "^4.8.5",
+    "logfmt": "^1.1.2",
+    "nock": "^0.45.0",
+    "querystring": "^0.2.0",
+    "superagent": "^0.18.2"
+  },
+  "devDependencies": {},
+  "optionalDependencies": {},
+  "engines": {
+    "node": "0.10.28"
+  },
+  "scripts": {
+    "test": "mocha"
+  }
+}
