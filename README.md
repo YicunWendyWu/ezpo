@@ -7,3 +7,6 @@ In the add-on admin page of your Hipchat room, create a new private add-on with 
 
 ## Usage ##
 After installing the add-on, send a message containing /ezpo to the room and ezpo will echo your message in the room
+
+## TODO ##
+Use a database to remember authentication info. (currently, authenitcation info will be lost if service is restarted so in order to continue using the add-on, room admins will need to reinstall the add-on)
