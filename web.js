@@ -7,12 +7,14 @@ var querystring = require("querystring");
 
 var app = express();
 var capabilities = require("./capabilities.js");
+var hipchat = require("./hipchat.js");
 
 app.use(logfmt.requestLogger());
 app.use(bodyParser.json());
 app.use(express.static('public'));
 
 var secrets = {};
+
 
 function success(res) {
     "use strict";
@@ -83,53 +85,17 @@ app.post('/hipchat', function (req, res) {
     var item = req.body.item,
         message = item && item.message.message,
         room = item && item.room && item.room.id,
-        body = {
-            color: "random",
-            message: "ezpo got your message: " + message,
-            message_format: "text",
-            notify: true
-        },
-        options = {
-            hostname: 'api.hipchat.com',
-            port: 443,
-            path: '/v2/room/' + room + '/notification',
-            method: 'POST',
-            headers: {
-                Authorization: 'Bearer ' + secrets[room],
-                'Content-Type': "application/json"
-            }
-        },
-        responsebody,
-        httpreq;
-    if (item && message && room) {
-        httpreq = https.request(options, function (response) {
-            console.log('hipchat send response is ' + response.statusCode);
-            response.on('data', function (d) {
-                responsebody = responsebody + d;
-                console.log(responsebody);
-            });
-            if (response.statusCode === 204) {
-                console.log('hipchat sent message successful');
-                res.send("Webhook works well");
-            } else {
-                res.status(500);
-                console.error("Error replying to hipchat");
-                res.send("Error replying to hipchat");
-            }
-        });
-        httpreq.write(JSON.stringify(body));
-        httpreq.end();
-        httpreq.on('error', function (e) {
+        from = item && item.message.from.object.name,
+        secret = secrets[room];
+    hipchat.sendMessage(room, secret, 'echo ' + from + ': ' + message, function (err) {
+        if (err) {
             res.status(500);
-            console.error("Error sending request to hipchat");
-            console.error(e);
-            res.send("Hipchat request error");
-        });
-    } else {
-        res.status(500);
-        console.error("Information missing for hipchat request");
-        res.send("Not enough information provided");
-    }
+            console.error(err);
+            res.send(err);
+        } else {
+            res.send("OK");
+        }
+    });
 });
 
 var port = Number(process.env.PORT || 5000);
