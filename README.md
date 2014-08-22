@@ -24,5 +24,10 @@ Creates a lucky game with <total> numbers and <lucky> lucky numbers
 ### /ezpo lucky <pick> ###
 Checks if <pick> is a lucky number
 
+### Use Case ###
+It's Amy's birthday, the team decides to get a birthday cake for her. A few days before the date, we set up the timer to use as a reminder. On the date, we use the vote-related functionalities to vote on the cake flavour, and use the lucky number-related functionalities to select a person to pickup the cake from the supermarket. 
+
 ## TODO ##
-Use a database to remember authentication info. (currently, authenitcation info will be lost if service is restarted so in order to continue using the add-on, room admins will need to reinstall the add-on)
+
+* Use a database to remember authentication info. (currently, authenitcation info will be lost if service is restarted so in order to continue using the add-on, room admins will need to reinstall the add-on)
+* Use consistent HTTP connections (currently creating a new connection every time we send a message)
