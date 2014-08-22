@@ -40,10 +40,10 @@ var sendMessage = function (room, secret, message, callback) {
             }
         });
     } else if (callback) {
-        callback("parameters missing");
+        callback("sendMessage: parameters missing");
     }
 };
 
 module.exports = {
-    sendMessage: sendMessage
+    sendMessage: sendMessage,
 };

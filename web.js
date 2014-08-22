@@ -14,7 +14,8 @@ app.use(bodyParser.json());
 app.use(express.static('public'));
 
 var secrets = {};
-
+var votes = {};
+var lucks = {};
 
 function success(res) {
     "use strict";
@@ -64,6 +65,7 @@ app.post('/installable', function (req, res) {
             response.on('data', function (d) {
                 responsebody = responsebody + d;
                 secrets[roomId] = JSON.parse(responsebody).access_token;
+                votes[roomId] = {};
             });
         });
         httpreq.write(querystring.stringify(body));
@@ -83,19 +85,105 @@ app.post('/installable', function (req, res) {
 app.post('/hipchat', function (req, res) {
     "use strict";
     var item = req.body.item,
-        message = item && item.message.message,
+        from = item && item.message && item.message.from && item.message.from.name,
+        message = item && item.message && item.message.message,
+        messageParts,
         room = item && item.room && item.room.id,
-        from = item && item.message.from.object.name,
-        secret = secrets[room];
-    hipchat.sendMessage(room, secret, 'echo ' + from + ': ' + message, function (err) {
-        if (err) {
-            res.status(500);
-            console.error(err);
-            res.send(err);
+        secret = secrets[room],
+        time,
+        vote,
+        votename,
+        total,
+        i,
+        luckynum,
+        randomNum;
+    function send(message) {
+        hipchat.sendMessage(room, secret, message, function (err) {
+            if (err) {
+                res.status(500);
+                console.error(err);
+                res.send(err);
+            } else {
+                res.send("OK");
+            }
+        });
+    }
+    if (message) {
+        messageParts = message.split(" ");
+        if (messageParts.length > 2 && messageParts[1] === "timer") {
+            time = parseInt(messageParts[2], 10);
+            if (isNaN(time)) {
+                send('timer error: second argument should be a number');
+                return;
+            }
+            message = '';
+            if (messageParts.length > 3) {
+                message = messageParts.slice(3).join(" ");
+            }
+            setTimeout(function () {
+                send('Time is up: ' + message);
+            }, time * 60000);
+        } else if (messageParts.length === 3 && messageParts[1] === "votestart") {
+            votename = messageParts[2];
+            votes[room][votename] = {};
+            votes[room][votename].voters = [];
+            send("created vote: " + votename);
+        } else if (messageParts.length === 3 && messageParts[1] === "votestatus") {
+            votename = messageParts[2];
+            if (votes[room] && votes[room][votename]) {
+                send(JSON.stringify(votes[room][votename]));
+            } else {
+                send("No vote status for " + votename);
+            }
+        } else if (messageParts.length === 4 && messageParts[1] === "vote") {
+            votename = messageParts[2];
+            vote = messageParts[3];
+            if (votes[room] && votes[room][votename] && votes[room][votename].voters.indexOf(from) === -1) {
+                if (votes[room][votename][vote]) {
+                    votes[room][votename][vote] = votes[room][votename][vote] + 1;
+                } else {
+                    votes[room][votename][vote] = 1;
+                }
+                votes[room][votename].voters.push(from);
+                send("Vote recorded");
+            } else {
+                send("Invalid vote, please verify information is correct");
+            }
+        } else if (messageParts.length === 4 && messageParts[1] === "luckystart") {
+            total = parseInt(messageParts[2], 10);
+            luckynum = parseInt(messageParts[3], 10);
+            if (!isNaN(total) && !isNaN(luckynum) && luckynum < total && luckynum > 0 && total > 0) {
+                lucks[room] = [];
+                for (i = 0; i < total; i += 1) {
+                    lucks[room].push(0);
+                }
+                for (i = 0; i < luckynum; i += 1) {
+                    randomNum = Math.floor(Math.random() * (luckynum + 1));
+                    while (lucks[room][randomNum] === 1) {
+                        randomNum = Math.floor(Math.random() * (luckynum + 1));
+                    }
+                    lucks[room][randomNum] = 1;
+                }
+                send("Game set up");
+            } else {
+                send("Invalid luckystart arguments");
+            }
+        } else if (messageParts.length === 3 && messageParts[1] === "lucky") {
+            luckynum = parseInt(messageParts[2], 10);
+            if (!isNaN(luckynum) && lucks[room] && luckynum <= lucks[room].length) {
+                if (lucks[room][luckynum - 1] === 1) {
+                    message = "You picked a lucky number!";
+                } else {
+                    message = "Not a lucky day for you";
+                }
+                send(message);
+            } else {
+                send("invalid lucky number");
+            }
         } else {
-            res.send("OK");
+            send("Invalid command");
         }
-    });
+    }
 });
 
 var port = Number(process.env.PORT || 5000);
