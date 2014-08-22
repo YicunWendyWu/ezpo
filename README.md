@@ -1,6 +1,6 @@
 # Ezpo Hipchat Add-on #
 
-This is a very basic echo add-on which echos messages containing /ezpo
+This is a Hipchat add-on with 3 features: timer, voting, lucky number picking
 
 ## Installation ##
 In the add-on admin page of your Hipchat room, create a new private add-on with capabilities URL: ```https://ezpo.herokuapp.com/capabilities```
