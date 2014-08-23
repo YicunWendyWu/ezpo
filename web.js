@@ -170,7 +170,7 @@ app.post('/hipchat', function (req, res) {
             }
         } else if (messageParts.length === 3 && messageParts[1] === "lucky") {
             luckynum = parseInt(messageParts[2], 10);
-            if (!isNaN(luckynum) && lucks[room] && luckynum <= lucks[room].length) {
+            if (!isNaN(luckynum) && luckynum > 0 && lucks[room] && luckynum <= lucks[room].length) {
                 if (lucks[room][luckynum - 1] === 1) {
                     message = "You picked a lucky number!";
                 } else {
